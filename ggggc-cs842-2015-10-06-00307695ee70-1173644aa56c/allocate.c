@@ -43,7 +43,7 @@
 #endif
 
 /* REMOVE THIS FOR SUBMISSION! */
-#include <gc.h>
+//#include <gc.h>
 /* --- */
 
 #include "ggggc/gc.h"
@@ -154,13 +154,139 @@ void ggggc_freeGeneration(struct GGGGC_Pool *pool)
     freePoolsTail = pool;
 }
 
+
+
+
+
+
+
+
+
 /* allocate an object */
+//void *ggggc_malloc(struct GGGGC_Descriptor *descriptor)
+//{
+    /* FILLME */
+  //  GGC_YIELD();
+    //return GC_MALLOC(descriptor->size * sizeof(void*));
+//}
+
+struct GGGGC_Pool *ggggc_poolList=NULL;
+struct GGGGC_Pool *ggggc_curPool=NULL;
+struct FreeObjects *freeList=NULL;
+
+//  I am nullyfying the freepoolshead pointer
 void *ggggc_malloc(struct GGGGC_Descriptor *descriptor)
 {
-    /* FILLME */
-    GGC_YIELD();
-    return GC_MALLOC(descriptor->size * sizeof(void*));
+	//Change this for incrementing the pool list 
+	struct FreeObjects *start=freeList , *prev=start,*temp;
+	
+	struct GGGGC_Pool  *pool;
+	ggc_size_t i;
+    if(ggggc_poolList==NULL) // ALLOCATE 10 NEW POOLS IF NO POOL IS ALLOCATED YET
+    {
+    	pool=ggggc_poolList;
+    	for( i=0;i<10;i++)
+    	{
+    		pool=newPool(1);
+    		pool->next=NULL;
+    		pool->survivors = 0;
+    		if(ggggc_poolList==NULL)
+    		{
+				ggggc_poolList=ggggc_curPool=pool;
+			}
+			pool=pool->next;
+		}
+	}
+	
+	struct GGGGC_Header *obj_header=NULL;
+	//First check if free space is avaialble in the pool
+method_1_ForAllocation:	
+	//For the first method of allocation we will traverse all the pools to see if any space is available or not.
+	pool=ggggc_curPool;
+	while(pool!=NULL) 
+	{
+		if(pool->end - pool->free >= descriptor->size)
+		{
+			obj_header = (struct GGGGC_Header *) pool->free;
+			pool->free = pool->free + descriptor->size;
+			if(pool->free==pool->end)
+			{
+				ggggc_curPool=ggggc_curPool->next;
+			}
+			obj_header->descriptor__ptr=descriptor;
+			//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+			return obj_header;
+		}
+		pool=pool->next;
+	}
+	if(freeList)  //Implementing First Fit Criteria with splitting. Free objects also have an object header
+	{
+		struct GGGGC_Header *freeObjHeader;
+		while(start!=NULL)
+		{
+			freeObjHeader=(struct GGGGC_Header *) start;
+			if(freeObjHeader->descriptor__ptr->size == descriptor->size)
+			{
+				obj_header=freeObjHeader;
+				obj_header->descriptor__ptr=descriptor;
+				//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+				temp=prev->next;
+				prev->next=start->next;;
+				start->next=NULL;
+				return (void *)obj_header;
+			}
+			
+			else if(freeObjHeader->descriptor__ptr->size > descriptor->size) //Incase we want to split
+			{
+				obj_header=freeObjHeader;
+				obj_header->descriptor__ptr=descriptor;
+				//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+				temp=prev->next;
+				prev->next=start+descriptor->size;
+				
+				//We need to make an object header at this point at the location of splitting
+				
+				struct GGGGC_Header *splitObjHeader=(struct GGGGC_Header *)prev->next; //making a new object at the splitted region
+				splitObjHeader->descriptor__ptr=ggggc_allocateDescriptor(freeObjHeader->descriptor__ptr->size - descriptor->size,1); 
+				
+				prev->next=(struct FreeObjects *) splitObjHeader;
+				prev->next->next=temp;
+				return (void *)obj_header;
+			}
+			
+			prev=start;
+			start=start->next;
+		}
+	}
+	else if(start==NULL) // i.e. the free list got traversed fully or the free list is empty, and all pools were traversed , and still no appropiate object was found , we will allocate a new pool.
+	{
+		pool=newPool(1); 
+		if(!pool) //If no further pool can be allocated , then we call the GC
+		{
+			GGC_YIELD();
+			goto method_1_ForAllocation	;
+		}
+		pool->next=NULL;
+		pool->survivors = 0;
+		ggggc_curPool=pool;
+		
+		goto method_1_ForAllocation	;
+	}		
+	return NULL;
 }
+
+		
+	
+	
+
+
+
+
+
+
+
+
+
 
 struct GGGGC_Array {
     struct GGGGC_Header header;

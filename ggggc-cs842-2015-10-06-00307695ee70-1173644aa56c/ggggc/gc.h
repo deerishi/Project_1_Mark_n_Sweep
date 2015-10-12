@@ -337,6 +337,17 @@ GGC_DA_TYPE(size_t)
 typedef void *GGC_voidp;
 GGC_PA_TYPE(GGC_voidp)
 
+struct FreeObjects
+{
+	struct FreeObjects *next;
+};
+
+extern struct FreeObjects *freeList;
+
+	
+
+
+
 #ifdef __cplusplus
 }
 #endif
