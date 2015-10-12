@@ -32,7 +32,7 @@ btggggc: $(BTGGGGCOBJS)
 	$(LD) $(CFLAGS) $(LDFLAGS) $(BTGGGGCOBJS) $(GGGGC_LIBS) $(LIBS) -o btggggc
 
 badlll: $(BADLLLOBJS)
-	$(LD) $(CFLAGS) $(LDFLAGS) $(BADLLLOBJS) $(GGGGC_LIBS) $(LIBS) -o badlll
+	$(LD) $(CFLAGS) $(LDFLAGS) $(BADLLLOBJS) $(GGGGC_LIBS) $(GC_LIBS) $(LIBS) -o badlll
 
 remember: $(REMEMBEROBJS)
 	$(LD) $(CFLAGS) $(LDFLAGS) $(REMEMBEROBJS) $(GGGGC_LIBS) $(LIBS) -o remember
