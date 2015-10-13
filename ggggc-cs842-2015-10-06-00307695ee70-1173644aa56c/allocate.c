@@ -176,7 +176,7 @@ void *ggggc_malloc(struct GGGGC_Descriptor *descriptor)
 {
 	//Change this for incrementing the pool list 
 	struct FreeObjects *start=freeList , *prev=start,*temp;
-	
+	printf("size is %zu\n", descriptor->size);
 	struct GGGGC_Pool  *pool;
 	ggc_size_t i;
     if(ggggc_poolList==NULL) // ALLOCATE 10 NEW POOLS IF NO POOL IS ALLOCATED YET
@@ -212,7 +212,8 @@ method_1_ForAllocation:
 			}
 			obj_header->descriptor__ptr=descriptor;
 			//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
-			return obj_header;
+			printf("malloc obj is %u\n",obj_header);
+			return  (void *)obj_header;
 		}
 		pool=pool->next;
 	}
@@ -260,6 +261,7 @@ method_1_ForAllocation:
 		pool=newPool(1); 
 		if(!pool) //If no further pool can be allocated , then we call the GC
 		{
+			printf("calling yield from malloc\n");
 			GGC_YIELD();
 			ggggc_expandGeneration(ggggc_poolList);
 			goto method_1_ForAllocation	;
@@ -295,6 +297,7 @@ struct GGGGC_Array {
 void *ggggc_mallocPointerArray(ggc_size_t sz)
 {
     struct GGGGC_Descriptor *descriptor = ggggc_allocateDescriptorPA(sz + 1 + sizeof(struct GGGGC_Header)/sizeof(ggc_size_t));
+    
     struct GGGGC_Array *ret = (struct GGGGC_Array *) ggggc_malloc(descriptor);
     ret->length = sz;
     return ret;
@@ -334,6 +337,7 @@ struct GGGGC_Descriptor *ggggc_allocateDescriptorDescriptor(ggc_size_t size)
     tmpDescriptor.pointers[0] = GGGGC_DESCRIPTOR_DESCRIPTION;
 
     /* allocate the descriptor descriptor */
+    printf("calling first malloc 2\n");
     ret = (struct GGGGC_Descriptor *) ggggc_malloc(&tmpDescriptor);
 
     /* make it correct */
@@ -378,7 +382,9 @@ struct GGGGC_Descriptor *ggggc_allocateDescriptorL(ggc_size_t size, const ggc_si
     dd = ggggc_allocateDescriptorDescriptor(dSize);
 
     /* use that to allocate the descriptor */
+    printf("calling first malloc\n");
     ret = (struct GGGGC_Descriptor *) ggggc_malloc(dd);
+    printf("we got ret as %zu\n",ret);
     ret->size = size;
 
     /* and set it up */

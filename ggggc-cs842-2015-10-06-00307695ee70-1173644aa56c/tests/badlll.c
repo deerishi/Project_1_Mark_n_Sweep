@@ -6,7 +6,7 @@
 GGC_TYPE(LLL)
     GGC_MPTR(LLL, next);
     GGC_MDATA(int, val);
-GGC_END_TYPE(LLL,
+GGC_END_TYPE(LLL, 
     GGC_PTR(LLL, next)
     )
 
@@ -18,13 +18,15 @@ LLL buildLLL(int sz)
     LLL ll0 = NULL, lll = NULL, llc = NULL;
 
     GGC_PUSH_3(ll0, lll, llc);
-
+ 	printf("calling malloc\n");
     ll0 = GGC_NEW(LLL);
+    printf("here obj is %u\n",ll0);
     GGC_WD(ll0, val, 0);
     lll = ll0;
 
-    for (i = 1; i < sz; i++) {
+    for (i = 1; i < 5; i++) {
         llc = GGC_NEW(LLL);
+        printf("here obj is %u",llc);
         GGC_WD(llc, val, i);
         GGC_WP(lll, next, llc);
         lll = llc;
@@ -69,7 +71,7 @@ void testLLL(LLL lll)
 int main(void)
 {
     LLL mylll = NULL;
-
+	printf("calling main\n");
     GGC_PUSH_1(mylll);
 
     mylll = buildLLL(MAX);
