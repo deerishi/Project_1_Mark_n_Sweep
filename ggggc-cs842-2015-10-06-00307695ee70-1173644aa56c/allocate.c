@@ -159,9 +159,6 @@ void ggggc_freeGeneration(struct GGGGC_Pool *pool)
 
 
 
-
-
-
 /* allocate an object */
 //void *ggggc_malloc(struct GGGGC_Descriptor *descriptor)
 //{
@@ -264,6 +261,7 @@ method_1_ForAllocation:
 		if(!pool) //If no further pool can be allocated , then we call the GC
 		{
 			GGC_YIELD();
+			ggggc_expandGeneration(ggggc_poolList);
 			goto method_1_ForAllocation	;
 		}
 		pool->next=NULL;

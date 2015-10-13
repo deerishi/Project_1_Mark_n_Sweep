@@ -42,7 +42,7 @@ struct ObjectsForMark
 	struct ObjectsForMark *next;
 	void **pointersFromObjects;
 	ggc_size_t numPointers;
-}
+};
 
 static struct ObjectsForMark listForMarking;
 
@@ -79,8 +79,8 @@ static struct ObjectsForMark listForMarking;
 	markList->pointersFromObjects[markList->numPointers++]=ptr;\
 }while (0)
 
-#define MarklistPop(type,ptr) do{\
-	ptr=(type)markList->pointersFromObjects[--markList->numPointers];\
+#define MarklistPop(ptr) do{\
+	ptr=(void **)markList->pointersFromObjects[--markList->numPointers];\
 	}while(0)
 		
 #define IsMarked(obj) ((ggc_size_t) obj->descriptor__ptr & (ggc_size_t) 2)
@@ -88,13 +88,14 @@ static struct ObjectsForMark listForMarking;
 
 #define AddObjectPointers(obj,descriptor) do{\
 	ggc_size_t size=descriptor->size;\
-	if(!(descriptor->pointer[0] & 1))\
+	if(!(descriptor->pointers[0] & 1))\
 	{\
 		break;\
 	}\
-	ggc_size_t pointerMap=descriptor->pointer[0];\
+	ggc_size_t pointerMap=descriptor->pointers[0];\
 	void **objCopy=(void **)obj;\
-	for(ggc_size_t i=0;i<size;i++)\
+	ggc_size_t i;\
+	for( i=0;i<size;i++)\
 	{\
 		if(pointerMap & 1)\
 		{\
@@ -102,7 +103,7 @@ static struct ObjectsForMark listForMarking;
 		}\
 		pointerMap>>1;\
 	}\
-}
+}while(0)
 				
 void ggggc_collect()
 {
@@ -115,7 +116,7 @@ void ggggc_collect()
 	{
 		for(i=0;i<pointerCur->size;i++)
 		{
-			AddToMarkList(pointerCur->pointer[i]);
+			AddToMarkList(pointerCur->pointers[i]); //increment the number of survivros thMarkList(pointerCur->pointers[i]);
 		}
 	}
 	//Now the Mark Phase begins
@@ -123,32 +124,33 @@ void ggggc_collect()
 	while(markList->numPointers)
 	{
 		void **ptr;
-		MarkListPop(void **,ptr);
-		obj=(GGGGC_Header *)*ptr; //This has been done so that ob1 now points to the object itself
+		MarkListPop(ptr);
+		obj=(struct GGGGC_Header *) *ptr; //This has been done so that ob1 now points to the object itself
 		
 		if(obj==NULL) continue;
 		//UnMark(obj); //	Incase it was left marked by mistake
 		
 		if(!IsMarked(obj))
 		{
-			//That is the object is not marked, then fist copy the reference to the descriptor so as to 			save the further pointers
-			struct GGGC_Descriptor *correctDescriptorAddress=obj->descriptor_ptr;
+			//That is the object is not marked, then fist copy the reference to the descriptor so as to save the further pointers
+			struct GGGGC_Descriptor *descriptor= obj->descriptor__ptr;
 			
-			GGGGC_POOL_OF(obj)->survivors+=correctDescriptorAddress->size; //increment the number of survivros this collection 
+			struct GGGGC_Pool *POOL=GGGGC_POOL_OF(obj);
+			POOL->survivors+=  descriptor->size; //increment the number of survivros this collection 
 			
 			Mark(obj);
 			//add the pointers to the list for marking;
-			 AddObjectPointers(obj,correctDescriptorAddress);
+			 AddObjectPointers(obj,descriptor);
 		}
 	}
 	// now call the sweep code
-	GGGGC_Pool *pool=ggggc_poolList,*sweep;
-	struct GGGGC_Header *obj;
+	struct GGGGC_Pool *pool=ggggc_poolList;
 	struct FreeObjects *fobj1,*LastPointer;
 	freeList=NULL;
+	ggc_size_t *sweep; // we need this pois pointer to traverse the heap pools
 	while(pool)
 	{
-		sweep=pool->start;
+		sweep=(ggc_size_t *)(pool+ pool->start[0]);
 		while(sweep!=pool->end  && sweep!=pool->free && sweep!=NULL)
 		{
 			obj=(struct GGGGC_Header *)sweep;
@@ -170,7 +172,8 @@ void ggggc_collect()
 					LastPointer->next=fobj1; //appending to the freeList
 				}
 			}
-			sweep+=sweep+->descriptor__ptr->size ;
+			sweep+=obj->descriptor__ptr->size ;
+			
 		}
 		pool=pool->next;
 	}
@@ -217,51 +220,20 @@ int ggggc_yield()
     	ggggc_collect();
     	 return 0;
     }
-
-    /* first figure out how much space was used */
-    freeSpace = 0;
-    freeSpace += pool->end - pool->start;
 	
-	totalSpace=pool->end-pool->start[0];
+    /* first figure out how much space was used in the current pool*/
+    freeSpace = 0;
+    freeSpace += (ggc_size_t) pool->end - (ggc_size_t) pool->start;
+	totalSpace=(ggc_size_t) pool->end-(ggc_size_t) pool->start[0];
 	totalSpace=GGGGC_WORDS_PER_POOL;
-	ggc_size_t space=0, survivors=0, numPools=0;
     /* now decide if it's too much */
     if (freeSpace < ((3*totalSpace)/4))
     {
     	ggggc_collect();
-    	
-
-		pool=ggggc_poolList;
-
-		/* first figure out how much space was used */
-		
-		while (pool!=NULL) 
-		{
-		    space += pool->end - pool->start;
-		    survivors += pool->survivors;
-		    pool->survivors = 0;
-		    numPools++;
-		    if(pool->next==NULL) break;
-		    pool = pool->next;
-		}
-		
-    	for(ggc_size_t i=0;i<2*numPools;i++)
-    	{
-    		pool->next=newPool(1);
-    		pool->next->next=NULL;
-    		pool->next->survivors = 0;
-    	}	
-    		
-   	}
+    }
 	
     return 0;
 }
-
-
-
-
-
-
 
 
 
