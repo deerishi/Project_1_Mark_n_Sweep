@@ -145,7 +145,7 @@ static struct ObjectsForMark listForMarking;
 }while(0)
 
 
-extern struct FreeObjects *LastPointer=NULL;				
+ struct FreeObjects *LastPointer=NULL;				
 void ggggc_collect()
 {
 	//printf("\n\n In collect \n\n");

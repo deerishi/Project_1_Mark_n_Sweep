@@ -23,14 +23,15 @@ LinkedList makeList(int counter)
   //  printf("here obj is %u\n",ob2);
     GGC_WD(ob2, val, 0);
     ob3 = ob2;
-
+	ob5=GGC_NEW(LinkedList);
+	ob5=NULL;  // This object is being is made a garbage, inorder to invoke the garbage collector on it.
     for (i = 1; i < counter; i++) {
         ob4 = GGC_NEW(LinkedList);
         //printf("here obj is %zu\n",ob4);
         GGC_WD(ob4, val, i);
         GGC_WP(ob3, next, ob4);
         ob3 = ob4;
-        ob5=ob3;
+       // ob5=ob3;
         GGC_YIELD();
     }
 

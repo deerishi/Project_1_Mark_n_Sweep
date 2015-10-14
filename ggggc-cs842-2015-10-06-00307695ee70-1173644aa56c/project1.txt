@@ -42,5 +42,10 @@ Function ggggc_collect() :
 		3.4) If IsNotMarked ptr then add it to the freeList. FreeList here is made from the beginning.
 		
 project1-test.c:
-	Makes a very long Linked List ( size 100000000 ) with 4 objects and assigns the objects in a random manner, similar to badlll.c
-		
+	Makes a very long Linked List ( size 100000000 ) with 4 objects and assigns the objects in a random manner. Here one object is being made GARBAGE By nullyfying the reference to it so that the Garbage Collector collects it.	
+	
+Makefile :
+	The Makefile has been modified with to incorporate the project1-test.c compilation. THe following was added to the Makefile.
+	TESTDLLOBJS=project1-test.o
+	testdll: $(TESTDLLOBJS)
+	$(LD) $(CFLAGS) $(LDFLAGS) $(TESTDLLOBJS) $(GGGGC_LIBS)  $(LIBS) -w -o project1-test
