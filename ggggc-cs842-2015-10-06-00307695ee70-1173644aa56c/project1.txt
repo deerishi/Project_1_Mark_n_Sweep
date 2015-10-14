@@ -15,7 +15,10 @@ Function ggggc_malloc :
 	2)pool=CUrrentPool
 		2.1) First We do try bump Pointer Allocation for the object in each of the available pools starting form the current pool
 			2.1.1) If we succeed , we return the object header 
-		2.2)We check if the FreeList has any objects with teh required size availble. If yes return that object and remove it from the free list
+		2.2)We check if the FreeList has any objects with teh required size availble. 
+			2.2.1) IN the FreeList if the size of the available object matches that of the Free obj, then allocate it.
+			2.2.2)If the size of the Free Object is more than the size of the required object then SPLIT the Free object.
+			
 		2.3) If free list and bump pointer allocation both fail , we try allocation a new pool.
 			2.3.1) If newPool is not NUll, we retry from step 1
 			2.3.2) If no newPool is not an success, the we Yield

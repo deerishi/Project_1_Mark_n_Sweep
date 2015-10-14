@@ -128,10 +128,10 @@ static struct ObjectsForMark listForMarking;
 		pointerMap=(descriptor->pointers[0])/2;	\
 		for( i=1;i<size;i++)\
 		{\
-			/*printf("1 pointermap in for is %zu\n",pointerMap);*/\
+			\
 			if(pointerMap & 1)\
 			{\
-				/*printf("adding pointer %zu \n",&obj[i]);*/\
+				\
 				temp2=(void*)obj+i;\
 				AddToMarkList(&objCopy[i]);\
 			}\
@@ -139,7 +139,7 @@ static struct ObjectsForMark listForMarking;
 		}\
 	}\
 	void *temp=obj;\
-	/*printf("&object at 0 is %zu and obj is %zu\n",&objCopy[0],&temp);*/\
+	\
 	\
 	AddToMarkList(&objCopy[0]);\
 }while(0)
@@ -156,10 +156,10 @@ void ggggc_collect()
 	//Now all the roots are put on the stack
 	for(pointerCur=ggggc_pointerStack;pointerCur!=NULL;pointerCur=pointerCur->next)
 	{
-		//printf("current pointer is %zu\n",pointerCur);
+		
 		for(i=0;i<pointerCur->size;i++)
 		{	
-			//printf("adding %zu root %zu\n",i,(pointerCur->pointers[i]));
+
 			AddToMarkList(pointerCur->pointers[i]); //increment the number of survivros thMarkList(pointerCur->pointers[i]);
 		}
 	}
@@ -179,40 +179,19 @@ void ggggc_collect()
 		 }
 		 ggc_size_t flag=0;
 		 flag=IS_MARKED_PTR(obj);
-		 //printf("flag is %zu\n",flag);
 		 obj= UNMARK_PTR(struct GGGGC_Header, obj);
 		 
-		//flag=IS_MARKED_PTR(ptr);
-		 /*if(((ggc_size_t)*ptr) & 2)
-		 {
-		 	*ptr= *ptr & (ggc_size_t)~2;
-		 	obj=(struct GGGGC_Header *) *ptr;
-		 }*/
-		//UnMark(obj); //	Incase it was left marked by mistake
-		//printf("collect obj is %zu  and descriptor is %zu ismarkedis %zu\n",obj,obj->descriptor__ptr,IsMarked(obj));
+		
 		if(!IsMarked(obj))
 		{
 			//That is the object is not marked, then fist copy the reference to the descriptor so as to save the further pointers
 		//	//printf("descriptor is %zu and its size is %zu\n",(ggc_size_t)obj->descriptor__ptr,obj->descriptor__ptr->size);
 			ggc_size_t poolNos=(ggc_size_t)GGGGC_POOL_OF(obj);
-			//if((ggc_size_t)(GGGGC_POOL_OF(obj) + GGGGC_WORDS_PER_POOL ) < (ggc_size_t)obj->descriptor__ptr) 
-			/*/{	
-				//printf("continue\n");
-				continue;
-			}*/
+			
 			struct GGGGC_Descriptor *descriptor;
-			/*if(flag==2)
-			{
-				struct GGGGC_Descriptor *temp=(struct GGGGC_Descriptor *) obj;
-				//printf("temp is %zu\n",temp);
-				descriptor=temp->header;
-				flag=0;
-			}*/
-			//else
-			//{
-				 descriptor= obj->descriptor__ptr;
-			//}
-			//printf("descriptor is %zu\n",descriptor);
+			
+			descriptor= obj->descriptor__ptr;
+			
 			struct GGGGC_Pool *POOL=GGGGC_POOL_OF(obj);
 			POOL->survivors+=  descriptor->size; //increment the number of survivros this collection 
 			
@@ -232,37 +211,37 @@ void ggggc_collect()
 	while(pool)
 	{
 		sweep=(ggc_size_t *)(pool->start[0]);
-		//printf("starting pool is %zu\n",sweep);
+
 		sweep= UNMARK_PTR(ggc_size_t,sweep);
 		while(sweep!=pool->end  && sweep!=pool->free && sweep!=NULL)
 		{
-			//printf("sweep pointer in heap is %zu \n",sweep);
+
 			obj=(struct GGGGC_Header *)sweep;
 			 obj= UNMARK_PTR(struct GGGGC_Header, obj);
-			//printf("obj is %zu\n",obj->descriptor__ptr);
+
 			if(IsMarked(obj))
 			{
-				//printf("obj is marked\n");
+
 				UnMark(obj);
 			}
 			else
 			{
 				fobj1=(struct FreeObjects *)obj;
 				fobj1->next=NULL;
-				//printf("obj is umarked \n");
+
 				if(freeList==NULL)
 				{
 					freeList=fobj1;
 					LastPointer=fobj1;
-					//printf("ss\n");
+
 				}
 				else
 				{
-					//printf("Lastp is %zu\n",LastPointer);
+
 					LastPointer->next=fobj1; //appending to the freeList
 				}
 			}
-			//printf("sweep is %zu and size is %zu\n",sweep,obj->descriptor__ptr->size);
+
 			//if((ggc_size_t)(sweep+ obj->descriptor__ptr->size) < (ggc_size_t) pool->end )
 			//{
 				sweep=sweep + obj->descriptor__ptr->size ;

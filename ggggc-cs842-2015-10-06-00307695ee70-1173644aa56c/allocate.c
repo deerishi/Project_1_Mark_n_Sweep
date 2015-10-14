@@ -181,7 +181,7 @@ void *ggggc_malloc(struct GGGGC_Descriptor *descriptor)
 {
 	//Change this for incrementing the pool list 
 	struct FreeObjects *start=freeList , *prev=start,*temp;
-	//printf("size is %zu\n", descriptor->size);
+
 	struct GGGGC_Pool  *pool;
 	ggc_size_t i;
     if(ggggc_poolList==NULL) // ALLOCATE 10 NEW POOLS IF NO POOL IS ALLOCATED YET
@@ -202,15 +202,15 @@ void *ggggc_malloc(struct GGGGC_Descriptor *descriptor)
 	}
 	
 	struct GGGGC_Header *obj_header=NULL;
-	//First check if free space is avaialble in the pool
+
 method_1_ForAllocation:	
 	//For the first method of allocation we will traverse all the pools to see if any space is available or not.
 	pool=ggggc_curPool;
-	//printf("pool->start[0] is %zu\n",pool->start[0]);
+
 	while(pool!=NULL) 
 	{
 	
-		//printf("starting allocation pool is %zu\n",pool);
+
 		if(pool->end - pool->free >= descriptor->size)
 		{
 			obj_header = (struct GGGGC_Header *) pool->free;
@@ -220,19 +220,20 @@ method_1_ForAllocation:
 				ggggc_curPool=ggggc_curPool->next;
 			}
 			obj_header->descriptor__ptr=descriptor;
-			//obj_header->descriptor__ptr->user__ptr=NULL;
-			//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+
+
 			 memset(obj_header + 1, 0, descriptor->size * sizeof(ggc_size_t) - sizeof(struct GGGGC_Header));
-			//printf("malloc obj is %zu and descriptor is %zu and des  is %zu  and its dex points to %zu\n",obj_header,obj_header->descriptor__ptr,obj_header->descriptor__ptr->header,obj_header->descriptor__ptr->header.descriptor__ptr);
+
 			if(pool->start[0]==0)
 			{
-				//printf("allocating pool->start obj is %zu and pool is %zu \n",obj_header,pool);
+
 				startPlace=(ggc_size_t)obj_header - (ggc_size_t)pool;
 				
 				startPlace=1;
 				pool->start[0]=startPlace;
-				//printf("startPlace is %zu and pool->start is %zu\n",startPlace,pool->start[0]);
+
 			}
+			memset(obj_header + 1, 0, descriptor->size * sizeof(ggc_size_t) - sizeof(struct GGGGC_Header));
 			return  obj_header;
 		}
 		pool=pool->next;
@@ -250,7 +251,7 @@ method_1_ForAllocation:
 				obj_header=freeObjHeader;
 				obj_header->descriptor__ptr=descriptor;
 				obj_header->descriptor__ptr->user__ptr=NULL;
-				//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+
 				temp=prev->next;
 				prev->next=start->next;;
 				start->next=NULL;
@@ -262,7 +263,7 @@ method_1_ForAllocation:
 				obj_header=freeObjHeader;
 				obj_header->descriptor__ptr=descriptor;
 				obj_header->descriptor__ptr->user__ptr=NULL;
-				//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+
 				temp=prev->next;
 				prev->next=start+descriptor->size;
 				
