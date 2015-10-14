@@ -145,7 +145,7 @@ static struct ObjectsForMark listForMarking;
 }while(0)
 
 
-				
+extern struct FreeObjects *LastPointer=NULL;				
 void ggggc_collect()
 {
 	//printf("\n\n In collect \n\n");
@@ -249,16 +249,16 @@ void ggggc_collect()
 			{
 				fobj1=(struct FreeObjects *)obj;
 				fobj1->next=NULL;
-				printf("obj is umarked \n");
+				//printf("obj is umarked \n");
 				if(freeList==NULL)
 				{
 					freeList=fobj1;
 					LastPointer=fobj1;
-					printf("ss\n");
+					//printf("ss\n");
 				}
 				else
 				{
-					printf("Lastp is %zu\n",LastPointer);
+					//printf("Lastp is %zu\n",LastPointer);
 					LastPointer->next=fobj1; //appending to the freeList
 				}
 			}

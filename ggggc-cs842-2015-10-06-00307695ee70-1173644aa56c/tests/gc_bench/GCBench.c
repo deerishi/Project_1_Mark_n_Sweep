@@ -45,7 +45,7 @@
 #ifdef GC
 #  include "gc/gc.h"
 #endif
-
+#include "ggggc/gc.h"
 #ifdef PROFIL
   extern void init_profiling();
   extern dump_profile();
@@ -142,8 +142,10 @@ static Node MakeTree(int iDepth) {
 	Node result;
         if (iDepth<=0) {
 #	    ifndef GC
+		printf("calling calloc \n");
 		result = calloc(1, sizeof(Node0));
 #	    else
+		printf("calling gc \n");
 		result = GC_NEW(Node0); HOLE();
 #	    endif
 	    /* result is implicitly initialized in both cases. */
@@ -254,15 +256,20 @@ int main() {
           longLivedTree = GC_NEW(Node0);
 #	endif
         Populate(kLongLivedTreeDepth, longLivedTree);
-
+		
+			printf(
         // Create long-lived array, filling half of it
 	printf(" Creating a long-lived array of %d doubles\n", kArraySize);
+	printf("hi1\n");
 #	ifndef GC
+		printf("hi\n");
           array = malloc(kArraySize * sizeof(double));
 #	else
 #	  ifndef NO_PTRFREE
+		printf("hi3\n");
             array = GC_MALLOC_ATOMIC(sizeof(double) * kArraySize);
 #	  else
+			printf("hi2\n");
             array = GC_MALLOC(sizeof(double) * kArraySize);
 #	  endif
 #	endif

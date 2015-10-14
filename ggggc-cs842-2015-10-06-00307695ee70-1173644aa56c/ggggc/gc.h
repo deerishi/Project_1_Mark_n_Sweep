@@ -342,7 +342,7 @@ struct FreeObjects
 	struct FreeObjects *next;
 };
 
-extern struct FreeObjects *freeList;
+extern struct FreeObjects *freeList,*LastPointer;
 
 	
 

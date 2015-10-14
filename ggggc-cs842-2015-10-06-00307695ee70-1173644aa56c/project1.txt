@@ -1,0 +1,40 @@
+gc.h extra stuff added
+	1)FreeList structure and FreeList Objects 
+	struct FreeObjects
+	{
+		struct FreeObjects *next;
+	};
+
+	extern struct FreeObjects *freeList,*LastPointer;
+
+Function ggggc_malloc :
+	1)Checks if the pool list is empty or not
+		If yes, allocates 10 pools
+		If No, proceed to allcation
+	
+	2)pool=CUrrentPool
+		2.1) First We do try bump Pointer Allocation for the object in each of the available pools starting form the current pool
+			2.1.1) If we succeed , we return the object header 
+		2.2)We check if the FreeList has any objects with teh required size availble. If yes return that object and remove it from the free list
+		2.3) If free list and bump pointer allocation both fail , we try allocation a new pool.
+			2.3.1) If newPool is not NUll, we retry from step 1
+			2.3.2) If no newPool is not an success, the we Yield
+			
+		
+Function ggggc_yield() :
+	
+	1)Checks if CurrentPool is null, then called the GC
+	2)Checks if the CurrentPool is more than 3/4 filled then calls the GC
+	
+	
+Function ggggc_collect() :
+	
+	1)Starts by putting all the root pointers accessible by ggggc_pointerStack into a GC MarkList
+	2)MARK PHASE :
+		2.1)Starts popping the MarkList and MARKS the Objects using the BIT Sneaky Method  and add the corresponding object pointers to the MarkList. All the pointers obtained here are unmasked first[ ((type *) ((ggc_size_t) (ptr) & (ggc_size_t) ~2))]
+	3)SWEEP PHASE :
+		3.1) Starts Traversing the pool from the PoolList and heapPointer as pool->start;
+		3.2)Converts the heap pointer into Object Header, checks if the current object is marked or not.
+		3.3) If IsMarked obj then Unmark it and increment the sweep pointer
+		3.4) If IsNotMarked ptr then add it to the freeList. FreeList here is made from the beginning.
+		
