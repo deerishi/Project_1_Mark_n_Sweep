@@ -1,3 +1,3 @@
 make clean
-make badlll
-gdb ./badlll
+make ggggcbench badlll btggggc
+ 

@@ -24,9 +24,9 @@ LLL buildLLL(int sz)
     GGC_WD(ll0, val, 0);
     lll = ll0;
 
-    for (i = 1; i < 5; i++) {
+    for (i = 1; i < sz; i++) {
         llc = GGC_NEW(LLL);
-        printf("here obj is %u",llc);
+        //printf("here obj is %zu\n",llc);
         GGC_WD(llc, val, i);
         GGC_WP(lll, next, llc);
         lll = llc;
