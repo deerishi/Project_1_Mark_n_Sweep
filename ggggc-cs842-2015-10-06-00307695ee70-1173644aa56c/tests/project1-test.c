@@ -19,18 +19,21 @@ LinkedList makeList(int counter)
 
     GGC_PUSH_4(ob2, ob3, ob4, ob5);
  	printf("calling malloc\n");
+    
+    ob5 = GGC_NEW(LinkedList);
     ob2 = GGC_NEW(LinkedList);
   //  printf("here obj is %u\n",ob2);
     GGC_WD(ob2, val, 0);
     ob3 = ob2;
+    ob5=NULL;
 
-    for (i = 1; i < counter; i++) {
+    for (i = 1; i < 15; i++) {
         ob4 = GGC_NEW(LinkedList);
-        //printf("here obj is %zu\n",ob4);
+        //printf("here obj is %zx\n",ob4);
         GGC_WD(ob4, val, i);
         GGC_WP(ob3, next, ob4);
         ob3 = ob4;
-        ob5=ob3;
+//        ob5=ob3;
         GGC_YIELD();
     }
 

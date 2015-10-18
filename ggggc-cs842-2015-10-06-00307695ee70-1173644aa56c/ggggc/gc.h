@@ -339,6 +339,7 @@ GGC_PA_TYPE(GGC_voidp)
 
 struct FreeObjects
 {
+	struct GGGGC_Header header;
 	struct FreeObjects *next;
 };
 
