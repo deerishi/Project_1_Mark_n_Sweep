@@ -276,7 +276,7 @@ method_1_ForAllocation:
 				
 				    struct FreeObjects *splitObjHeader=(struct FreeObjects *)(start + descriptor->size); //making a new object at the splitted region
 				    splitObjHeader->header.descriptor__ptr=NULL; 
-				    splitObjHeader->size=start->header.descriptor__ptr - descriptor->size;
+				    splitObjHeader->size=start->header.descriptor__ptr->size - descriptor->size;
 				
 				  
 				    return (void *)obj_header;

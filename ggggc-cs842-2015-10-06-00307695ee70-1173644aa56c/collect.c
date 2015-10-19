@@ -145,7 +145,7 @@ static struct ObjectsForMark listForMarking;
 }while(0)
 
 
-extern struct FreeObjects *LastPointer=NULL;				
+ //struct FreeObjects *LastPointer=NULL;				
 void ggggc_collect()
 {
 	//printf("\n\n In collect \n\n");
@@ -227,7 +227,7 @@ void ggggc_collect()
 	//printf("\n\nNow calling sweep pointer\n\n");
 	struct GGGGC_Pool *pool=ggggc_poolList;
 	struct FreeObjects *fobj1,*LastPointer;
-	freeList=NULL;
+	freeList=NULL;LastPointer=NULL;
 	ggc_size_t *sweep; // we need this pois pointer to traverse the heap pools
 	while(pool)
 	{
