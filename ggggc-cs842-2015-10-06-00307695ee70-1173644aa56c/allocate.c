@@ -183,7 +183,7 @@ void *ggggc_malloc(struct GGGGC_Descriptor *descriptor)
 	struct FreeObjects *start=freeList , *prev=start,*temp;
 	//printf("size is %zx\n", descriptor->size);
 	struct GGGGC_Pool  *pool;
-	ggc_size_t i;
+	ggc_size_t i, sizeOfFreeObj;
     if(ggggc_poolList==NULL) // ALLOCATE 10 NEW POOLS IF NO POOL IS ALLOCATED YET
     {
     	pool=ggggc_poolList;
@@ -223,7 +223,7 @@ method_1_ForAllocation:
 			//obj_header->descriptor__ptr->user__ptr=NULL;
 			//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
 			 memset(obj_header + 1, 0, descriptor->size * sizeof(ggc_size_t) - sizeof(struct GGGGC_Header));
-			printf("malloc obj is %zx and descriptor size is %zx and des  is %zx  and its dex points to %zx\n",obj_header,obj_header->descriptor__ptr->size,obj_header->descriptor__ptr->header,obj_header->descriptor__ptr->header.descriptor__ptr);
+			//printf("malloc obj is %zx and descriptor size is %zx and des  is %zx  and its dex points to %zx\n",obj_header,obj_header->descriptor__ptr->size,obj_header->descriptor__ptr->header,obj_header->descriptor__ptr->header.descriptor__ptr);
 			if(pool->start[0]==0)
 			{
 				//printf("allocating pool->start obj is %zx and pool is %zx \n",obj_header,pool);
@@ -241,39 +241,83 @@ method_1_ForAllocation:
 	}
 	if(freeList)  //Implementing First Fit Criteria with splitting. Free objects also have an object header
 	{
-		struct GGGGC_Header *freeObjHeader;
+		//struct GGGGC_Header *freeObjHeader;
 		while(start!=NULL)
 		{
-			freeObjHeader=(struct GGGGC_Header *) start;
-			if(freeObjHeader->descriptor__ptr->size == descriptor->size)
+			obj_header=(struct GGGGC_Header *) start;
+			sizeOfFreeObj=start->size;
+			if(sizeOfFreeObj == 0 ) // Meaning that it is an legitimate obj
 			{
-				obj_header=freeObjHeader;
-				obj_header->descriptor__ptr=descriptor;
-				obj_header->descriptor__ptr->user__ptr=NULL;
-				//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
-				temp=prev->next;
-				prev->next=start->next;;
-				start->next=NULL;
-				return obj_header;
-			}
+			    if(start->header.descriptor__ptr->size == descriptor->size)
+			    {
+				    obj_header->descriptor__ptr=descriptor;
+				
+				    //obj_header->descriptor__ptr->user__ptr=NULL;
+				    //obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+				
+				    temp=prev->next;
+				    prev->next=start->next;;
+				    start->next=NULL;
+				    return obj_header;
+			    }
 			
-			else if(freeObjHeader->descriptor__ptr->size > descriptor->size) //Incase we want to split
-			{
-				obj_header=freeObjHeader;
-				obj_header->descriptor__ptr=descriptor;
-				obj_header->descriptor__ptr->user__ptr=NULL;
-				//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
-				temp=prev->next;
-				prev->next=start+descriptor->size;
+			    else if(start->header.descriptor__ptr->size > descriptor->size) //Incase we want to split
+			    {
+				    //obj_header=freeObjHeader;
+				    obj_header->descriptor__ptr=descriptor;
+				    //obj_header->descriptor__ptr->user__ptr=NULL;
+				    //obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+			
+	                //Another way of doing this is allocate the space needed for the object only, and nullify the rest.		
+				    temp=prev->next;
+				    prev->next=start->next;
 				
-				//We need to make an object header at this point at the location of splitting
+				    //We need to make an object header at this point at the location of splitting
 				
-				struct GGGGC_Header *splitObjHeader=(struct GGGGC_Header *)prev->next; //making a new object at the splitted region
-				splitObjHeader->descriptor__ptr=ggggc_allocateDescriptor(freeObjHeader->descriptor__ptr->size - descriptor->size,1); 
+				    struct FreeObjects *splitObjHeader=(struct FreeObjects *)(start + descriptor->size); //making a new object at the splitted region
+				    splitObjHeader->header.descriptor__ptr=NULL; 
+				    splitObjHeader->size=start->header.descriptor__ptr - descriptor->size;
 				
-				prev->next=(struct FreeObjects *) splitObjHeader;
-				prev->next->next=temp;
-				return (void *)obj_header;
+				  
+				    return (void *)obj_header;
+			    }
+			 }
+			 else
+			 {
+			        if(sizeOfFreeObj == descriptor->size)
+			    	{
+						obj_header->descriptor__ptr=descriptor;
+				
+						//obj_header->descriptor__ptr->user__ptr=NULL;
+						//obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+				
+						temp=prev->next;
+						prev->next=start->next;;
+						start->next=NULL;
+						return obj_header;
+			    	}
+			
+			    else if(sizeOfFreeObj > descriptor->size) //Incase we want to split
+			    {
+				    //obj_header=freeObjHeader;
+				    obj_header->descriptor__ptr=descriptor;
+				    //obj_header->descriptor__ptr->user__ptr=NULL;
+				    //obj_header->descriptor__ptr->user__ptr=isNotFreeObject;
+			
+	                //Another way of doing this is allocate the space needed for the object only, and nullify the rest.		
+				    temp=prev->next;
+				    prev->next=start->next;
+				
+				    //We need to make an object header at this point at the location of splitting
+				
+				    struct FreeObjects *splitObjHeader=(struct FreeObjects *)(start + descriptor->size); //making a new object at the splitted region
+				    splitObjHeader->header.descriptor__ptr=NULL; 
+				    splitObjHeader->size= sizeOfFreeObj - descriptor->size;
+				
+				    
+				   
+				    return (void *)obj_header;
+			    }
 			}
 			
 			prev=start;
@@ -285,7 +329,7 @@ method_1_ForAllocation:
 		pool=newPool(1); 
 		if(!pool) //If no further pool can be allocated , then we call the GC
 		{
-			printf("calling yield from malloc\n");
+			//printf("calling yield from malloc\n");
 			GGC_YIELD();
 			ggggc_expandGeneration(ggggc_poolList);
 			goto method_1_ForAllocation	;

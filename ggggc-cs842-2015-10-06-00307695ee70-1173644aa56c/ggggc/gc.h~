@@ -341,7 +341,7 @@ struct FreeObjects
 {
 	struct GGGGC_Header header;
 	struct FreeObjects *next;
-	ggc_size_t size; // Used to store the size of the splitted memory and when the descriptor_ptr is NULL
+	ggc_size_t size;
 };
 
 extern struct FreeObjects *freeList,*LastPointer;
